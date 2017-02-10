@@ -172,11 +172,9 @@ def create_model():
     
     model = Sequential()
     #normalize image to [-0.5, 0.5]
-    model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=INPUT_SHAPE, name='Normalize'))
-    print(model.layers[0].output_shape)
+    model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=INPUT_SHAPE, name='Normalize'))   
     #crop off top and bottom pixels
-    model.add(Cropping2D(cropping=((55, 25), (0, 0)), name='Cropping')) 
-    print(model.layers[1].output_shape)
+    model.add(Cropping2D(cropping=((55, 25), (0, 0)), name='Cropping'))     
     #resize image to feed to convolutional layer
     model.add(Lambda(resize, name='Resize')) 
     #model.add(BatchNormalization(input_shape=INPUT_SHAPE, name='Normalize'))   
