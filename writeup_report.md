@@ -72,7 +72,7 @@ The final step was to run the simulator to see how well the car was driving arou
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
-However, the car was not able to complete track 2. I did more data augmentation by generating a random shadow of polygon shape on top of the iamges, and that helped the car complete track 2 as well.
+However, the car was not able to complete track 2. I did more data augmentation by generating a random shadow of polygon shape on top of the images, and that helped the car complete track 2 as well.
 
 #### 2. Final Model Architecture
 
@@ -131,7 +131,7 @@ I performed some data exploration, and found that over 50% of the center images 
 
 I then randomly shuffled the data set and put 20% of the data into a validation set. However, during training I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain the training loss at 0.02 after about 5 epochs.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 20 models and the best model was obtained at epoch 9. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
+I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented (as described previously) images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 20 models and the best model was obtained at epoch 9. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
 
 ## Reflections
 
