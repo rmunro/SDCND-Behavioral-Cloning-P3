@@ -125,10 +125,11 @@ I initially tried to run the simulator to create my own training data, but I fou
 
 Fortunately Udacity provided sample data so I decided to use that and see how it goes.
 
-I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.25, and for the right camera image, I subtracted that steering angle by 0.25. I then flipped the images so that we have balanced data with left and right steering angles.
+I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.25, and for the right camera image, I subtracted that steering angle by 0.25. I then flipped the images so that we have balanced data with left and right steering angles. For all images, I cropped the top 50 and bottom 25 pixels, and then resized them to 66x200 per the Nvidia architecture. 
 
-I did some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. To balance the data, I randomly drop 85% of these rows with 0 steering angle.
-I then randomly shuffled the data set and put 20% of the data into a validation set. However, I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain the training loss at 0.02 after about 5 epochs.
+I performed some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. To balance the data, I dropped a random 85% of these rows with 0 steering angle.
+
+I then randomly shuffled the data set and put 20% of the data into a validation set. However, during training I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain the training loss at 0.02 after about 5 epochs.
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 20 models and the best model was obtained at epoch 9. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
 
