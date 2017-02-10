@@ -33,18 +33,20 @@ def telemetry(sid, data):
         # The current image from the center camera of the car
         imgString = data["image"]
         img = Image.open(BytesIO(base64.b64decode(imgString)))
-        #image_array = np.asarray(image)
-        
-        #crop the top 50 and bottom 25 pixels and resize
-        img = cv2.cvtColor( np.asarray(img), cv2.COLOR_BGR2RGB) 
-        img = img[50:(img.shape[0]-25), 0:img.shape[1]]          
-        img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
+        #image_array = np.asarray(img)
                 
-        image_array = np.zeros(shape=(1, 66, 200, 3)).astype('uint8')                
+        img = cv2.cvtColor( np.asarray(img), cv2.COLOR_BGR2RGB) 
+        
+        #crop the top and bottom pixels and resize -- no longer needed, taken care by Keras layers
+        #img = img[50:(img.shape[0]-25), 0:img.shape[1]]          
+        #img = cv2.resize(img, (200, 66), interpolation=cv2.INTER_AREA)
+                
+        image_array = np.zeros(shape=(1, 160, 320, 3)).astype('uint8')                
         image_array[0] = img    
         steering_angle = float(model.predict(image_array, batch_size=1))
            
         throttle = 0.2
+        #for track 2
         if speed < 5:
             throttle = 1
         print(steering_angle, throttle)
