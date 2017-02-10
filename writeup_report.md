@@ -79,23 +79,28 @@ However, the car was not able to complete track 2. I did more data augmentation 
 The final model architecture (model.py lines 207-227) consisted of a convolution neural network with the following layers and layer sizes:
 
 <pre>
-Layer (type)                     Output Shape          Param No.    Connected to  
+____________________________________________________________________________________________________
+Layer (type)                     Output Shape          Param #     Connected to                     
 ====================================================================================================
-Normalize (Lambda)               (None, 66, 200, 3)    0           lambda_input_1[0][0]             
+Normalize (Lambda)               (None, 160, 320, 3)   0           lambda_input_1[0][0]             
 ____________________________________________________________________________________________________
-Conv1 (Convolution2D)            (None, 31, 98, 24)    1824        Normalize[0][0]                  
+Cropping (Cropping2D)            (None, 80, 320, 3)    0           Normalize[0][0]                  
 ____________________________________________________________________________________________________
-Conv2 (Convolution2D)            (None, 14, 47, 36)    21636       Conv1[0][0]                      
+Resize (Lambda)                  (None, 66, 200, 3)    0           Cropping[0][0]                   
+____________________________________________________________________________________________________
+Conv1 (Conv2D 24@5x5)            (None, 31, 98, 24)    1824        Resize[0][0]                     
+____________________________________________________________________________________________________
+Conv2 (Conv2D 36@5x5)            (None, 14, 47, 36)    21636       Conv1[0][0]                      
 ____________________________________________________________________________________________________
 Dropout1 (Dropout)               (None, 14, 47, 36)    0           Conv2[0][0]                      
 ____________________________________________________________________________________________________
-Conv3 (Convolution2D)            (None, 5, 22, 48)     43248       Dropout1[0][0]                   
+Conv3 (Conv2D 48@5x5)            (None, 5, 22, 48)     43248       Dropout1[0][0]                   
 ____________________________________________________________________________________________________
 Dropout2 (Dropout)               (None, 5, 22, 48)     0           Conv3[0][0]                      
 ____________________________________________________________________________________________________
-Conv4 (Convolution2D)            (None, 3, 20, 64)     27712       Dropout2[0][0]                   
+Conv4 (Conv2D 64@3x3)            (None, 3, 20, 64)     27712       Dropout2[0][0]                   
 ____________________________________________________________________________________________________
-Conv5 (Convolution2D)            (None, 1, 18, 64)     36928       Conv4[0][0]                      
+Conv5 (Conv2D 64@3x3)            (None, 1, 18, 64)     36928       Conv4[0][0]                      
 ____________________________________________________________________________________________________
 Dropout3 (Dropout)               (None, 1, 18, 64)     0           Conv5[0][0]                      
 ____________________________________________________________________________________________________
@@ -113,6 +118,7 @@ FC3 (Dense)                      (None, 10)            510         Dropout5[0][0
 ____________________________________________________________________________________________________
 Output (Dense)                   (None, 1)             11          FC3[0][0]                        
 ====================================================================================================
+
 </pre>
 
 Here is a visualization of the architecture:
@@ -125,13 +131,13 @@ I initially tried to run the simulator to create my own training data, but I fou
 
 Fortunately Udacity provided sample data so I decided to use that and see how it goes.
 
-I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.25, and for the right camera image, I subtracted that steering angle by 0.25. I then flipped the images so that we have balanced data with left and right steering angles. For all images, I cropped the top 50 and bottom 25 pixels, and then resized them to 66x200 per the Nvidia architecture. 
+I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.2, and for the right camera image, I subtracted that steering angle by 0.2. I then flipped the images so that we have balanced data with left and right steering angles. For all images, I cropped the top 55 and bottom 25 pixels, and then resized them to 66x200 per the Nvidia architecture. 
 
-I performed some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. To balance the data, I dropped a random 85% of these rows with 0 steering angle.
+I performed some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. To balance the data, I dropped a random 75% of these rows with 0 steering angle.
 
-I then randomly shuffled the data set and put 20% of the data into a validation set. However, during training I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain the training loss at 0.02 after about 5 epochs.
+I then randomly shuffled the data set and put 20% of the data into a validation set. However, during training I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain both the training  and validation loss at 0.02 after about 3 epochs.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented (as described previously) images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 20 models and the best model was obtained at epoch 9. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
+I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented (as described previously) images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 10 models and the best model was obtained at epoch 5. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
 
 ## Reflections
 
