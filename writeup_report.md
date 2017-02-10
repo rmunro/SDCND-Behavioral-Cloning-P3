@@ -131,13 +131,23 @@ I initially tried to run the simulator to create my own training data, but I fou
 
 Fortunately Udacity provided sample data so I decided to use that and see how it goes.
 
-I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.2, and for the right camera image, I subtracted that steering angle by 0.2. I then flipped the images so that we have balanced data with left and right steering angles. For all images, I cropped the top 55 and bottom 25 pixels, and then resized them to 66x200 per the Nvidia architecture. 
+I performed some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. Moreover, there are more negative steering angles than positive ones. Below is the histogram of the steering angles. 
+![Histogram](https://github.com/joanxiao/SDCND-Behavioral-Cloning-P3/blob/master/images/hist_before.jpg')
 
-I performed some data exploration, and found that over 50% of the center images have 0 steering angle, so the dataset is very imbalanced. To balance the data, I dropped a random 75% of these rows with 0 steering angle.
+To balance the data, I dropped a random 75% of these rows with 0 steering angle, and below is the new histogram:
+![Histogram after dropping 0 steering angles](https://github.com/joanxiao/SDCND-Behavioral-Cloning-P3/blob/master/images/hist_after.jpg')
 
 I then randomly shuffled the data set and put 20% of the data into a validation set. However, during training I found that the training loss decreased at very slow rate. So I changed the splitting to use 10% as the validation data, and I was able to obtain both the training  and validation loss at 0.02 after about 3 epochs.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented (as described previously) images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 10 models and the best model was obtained at epoch 5. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
+I loaded the images from center, left and right cameras. For the left camera images, I added the steering angle from center camera by 0.2, and for the right camera image, I subtracted that steering angle by 0.2. I then flipped the images so that we have balanced data with left and right steering angles. Other augmentations include horizontally shifting the images and casting a shandow of random polygon shape on the images. 
+
+Below are 25 random images from the training set before the augmentation, with the steering angle shown above each image:
+![Random training images](https://github.com/joanxiao/SDCND-Behavioral-Cloning-P3/blob/master/images/random_images.jpg')
+
+Below are 5 random images from the training set before the augmentation, followed by 4 augmented images in the same row. Steering angles ar shown above the images.
+![Random augmented images](https://github.com/joanxiao/SDCND-Behavioral-Cloning-P3/blob/master/images/augmented_images.jpg')
+
+For all images, I cropped the top 55 and bottom 25 pixels, and then resized them to 66x200 per the Nvidia architecture. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 10 models and the best model was obtained at epoch 5. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
 
 ## Reflections
 
