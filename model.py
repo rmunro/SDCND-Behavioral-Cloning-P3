@@ -14,7 +14,7 @@ from keras.models import Sequential
 from keras.layers import Input, Dense, Dropout, Activation, Flatten, Merge, merge, Lambda
 from keras.layers import Embedding
 from keras.layers.normalization import BatchNormalization
-from keras.layers import Convolution2D, MaxPooling2D
+from keras.layers import Convolution2D, Cropping2D
 from keras.utils.np_utils import to_categorical
 from keras.models import Model
 from keras.regularizers import l2
@@ -27,9 +27,9 @@ from keras.utils.visualize_util import plot
 import gc
 from keras import backend 
 
-INPUT_SHAPE = (66, 200, 3)
+INPUT_SHAPE = (160, 320, 3)
 BATCH_SIZE = 128
-EPOCHS = 20
+EPOCHS = 10
 SAMPLES_PER_EPOCH = 200 * BATCH_SIZE
 
 def load_data(data_file):
@@ -38,8 +38,8 @@ def load_data(data_file):
     df = pd.read_csv(data_file)
     print('found {} rows in file'.format(len(df)))
     
-    #keep only 15% of the rows with 9 steering angle
-    df = df.drop(df.query('steering==0').sample(frac=0.85).index)    
+    #keep only 25% of the rows with 9 steering angle
+    df = df.drop(df.query('steering==0').sample(frac=0.75).index)    
     df = df.sample(frac=1).reset_index(drop=True)
 
     df_train, df_val = train_test_split(df, test_size=0.1)
@@ -67,8 +67,8 @@ def load_image(file):
 
     #chop off top and bottom 25 pixels
     #img = img[25:(img.shape[0]-25), 0:img.shape[1]]    
-    img = img[50:(img.shape[0]-25), 0:img.shape[1]] 
-    img = cv2.resize(img, (INPUT_SHAPE[1], INPUT_SHAPE[0]), interpolation=cv2.INTER_AREA)  
+    #img = img[50:(img.shape[0]-25), 0:img.shape[1]] 
+    #img = cv2.resize(img, (INPUT_SHAPE[1], INPUT_SHAPE[0]), interpolation=cv2.INTER_AREA)  
     
     return img
 
@@ -91,12 +91,12 @@ def get_image_steering(row):
     elif r == 1:
         #add an offset to steering for left camera images
         img = load_image(os.path.join('data', row['left'].strip())) 
-        steering = row['steering'] + 0.225
+        steering = row['steering'] + 0.2
         steering = valid_steering(steering)
     else:  
         #subtract the same offset to steering for right camera images 
         img = load_image(os.path.join('data', row['right'].strip())) 
-        steering = row['steering'] - 0.225       
+        steering = row['steering'] - 0.2     
         steering = valid_steering(steering)
    
     return img, steering            
@@ -135,9 +135,9 @@ def augment_image(img, steering):
     
     #randomly flip image if the steering is not too small
     if random.randint(2) == 0:
-        if abs(steering) >= 0.1:
-            img = cv2.flip(img, 1)
-            steering = -1.0 * steering
+        #if abs(steering) >= 0.1:
+        img = cv2.flip(img, 1)
+        steering = -1.0 * steering
             
     #randomly change brightness
     r = 0.25 + random.uniform(0.2, 0.5)
@@ -162,51 +162,23 @@ def generate_train_data(df, batch_size = 32):
                     
         yield imgs, steerings
         
-    """
-    designed with 4 convolutional layer & 3 fully connected layer
-    weight init : glorot_uniform
-    activation func : relu
-    pooling : maxpooling
-    used dropout
-    """
-
-    model = Sequential()
-    model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(64, 64, 3)))
-    model.add(Convolution2D(32, 3, 3, border_mode='same', subsample=(2, 2), activation='relu', name='Conv1'))
-    #model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=None, border_mode='same'))
-    model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2), activation='relu', name='Conv2'))
-    #model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=None, border_mode='same'))
-    model.add(Convolution2D(128, 3, 3, border_mode='same', subsample=(1, 1), activation='relu', name='Conv3'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=None, border_mode='same'))
-    #model.add(BatchNormalization())
-    model.add(Convolution2D(128, 2, 2, border_mode='same', subsample=(1, 1), activation='relu', name='Conv4'))
-    #model.add(BatchNormalization())
-    model.add(Flatten())
-    model.add(Dropout(0.2))
-    model.add(Dense(128, activation='relu', name='FC1'))
-    model.add(Dropout(0.5))
-    model.add(Dense(128, activation='relu', name='FC2'))
-    model.add(Dropout(0.5))
-    model.add(Dense(64, activation='relu', name='FC3'))
-    model.add(Dense(1))
-    model.summary()
     
-    adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    model.compile(optimizer=adam, loss='mse')
-
-    return model
 #create the neural network    
 def create_model():         
-    #def resize(img):
-    #    import tensorflow as tf
-    #    img = tf.image.resize_images(img, (64, 128))
-    #    return img
+    def resize(img):
+        import tensorflow as tf
+        img = tf.image.resize_images(img, (66, 200))
+        return img
     
     model = Sequential()
+    #normalize image to [-0.5, 0.5]
     model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=INPUT_SHAPE, name='Normalize'))
-    #model.add(Lambda(resize, input_shape=INPUT_SHAPE, name='Resize')) 
+    print(model.layers[0].output_shape)
+    #crop off top and bottom pixels
+    model.add(Cropping2D(cropping=((55, 25), (0, 0)), name='Cropping')) 
+    print(model.layers[1].output_shape)
+    #resize image to feed to convolutional layer
+    model.add(Lambda(resize, name='Resize')) 
     #model.add(BatchNormalization(input_shape=INPUT_SHAPE, name='Normalize'))   
     model.add(Convolution2D(24, 5, 5, subsample=(2,2), activation='relu', border_mode='valid', name='Conv1'))   
     model.add(Convolution2D(36, 5, 5, subsample=(2,2), activation='relu', border_mode='valid', name='Conv2'))
@@ -221,7 +193,7 @@ def create_model():
     model.add(Dense(100, activation='relu', name='FC1'))
     model.add(Dropout(0.2, name='Dropout4')) 
     model.add(Dense(50, activation='relu', name='FC2'))
-    model.add(Dropout(0.5, name='Dropout5'))
+    model.add(Dropout(0.2, name='Dropout5'))
     model.add(Dense(10, activation='relu', name='FC3'))
 
     model.add(Dense(1, name='Output'))
