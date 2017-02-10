@@ -1,5 +1,5 @@
 
-**Behavrioal Cloning Project**
+## Behavioral Cloning Project
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
@@ -78,6 +78,42 @@ However, the car was not able to complete track 2. I did more data augmentation 
 
 The final model architecture (model.py lines 207-227) consisted of a convolution neural network with the following layers and layer sizes:
 
+<pre>
+Layer (type)                     Output Shape          Param No.    Connected to  
+====================================================================================================
+Normalize (Lambda)               (None, 66, 200, 3)    0           lambda_input_1[0][0]             
+____________________________________________________________________________________________________
+Conv1 (Convolution2D)            (None, 31, 98, 24)    1824        Normalize[0][0]                  
+____________________________________________________________________________________________________
+Conv2 (Convolution2D)            (None, 14, 47, 36)    21636       Conv1[0][0]                      
+____________________________________________________________________________________________________
+Dropout1 (Dropout)               (None, 14, 47, 36)    0           Conv2[0][0]                      
+____________________________________________________________________________________________________
+Conv3 (Convolution2D)            (None, 5, 22, 48)     43248       Dropout1[0][0]                   
+____________________________________________________________________________________________________
+Dropout2 (Dropout)               (None, 5, 22, 48)     0           Conv3[0][0]                      
+____________________________________________________________________________________________________
+Conv4 (Convolution2D)            (None, 3, 20, 64)     27712       Dropout2[0][0]                   
+____________________________________________________________________________________________________
+Conv5 (Convolution2D)            (None, 1, 18, 64)     36928       Conv4[0][0]                      
+____________________________________________________________________________________________________
+Dropout3 (Dropout)               (None, 1, 18, 64)     0           Conv5[0][0]                      
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 1152)          0           Dropout3[0][0]                   
+____________________________________________________________________________________________________
+FC1 (Dense)                      (None, 100)           115300      flatten_1[0][0]                  
+____________________________________________________________________________________________________
+Dropout4 (Dropout)               (None, 100)           0           FC1[0][0]                        
+____________________________________________________________________________________________________
+FC2 (Dense)                      (None, 50)            5050        Dropout4[0][0]                   
+____________________________________________________________________________________________________
+Dropout5 (Dropout)               (None, 50)            0           FC2[0][0]                        
+____________________________________________________________________________________________________
+FC3 (Dense)                      (None, 10)            510         Dropout5[0][0]                   
+____________________________________________________________________________________________________
+Output (Dense)                   (None, 1)             11          FC3[0][0]                        
+====================================================================================================
+</pre>
 
 Here is a visualization of the architecture:
 
@@ -96,7 +132,7 @@ I then randomly shuffled the data set and put 20% of the data into a validation 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used fit_generator to generate batches of 128 augmented images to train the model, and I used a callback to save the model at the end of each epoch. I trained for 20 models and the best model was obtained at epoch 9. I used an adam optimizer and tried various learning rate, although I settled with the default learning rate of 0.001 at the end.
 
-#### 4. Reflections
+## Reflections
 
 This project has taken me the longest time to complete among all the projects in this program so far. I stubmled upon several issues with the simulator. My development environment is a Linux VM, and unfortunately I'm unable to run the simulator on the VM. There are other students reporting similar problem but I haven't seen a solution. So I resorted to train the model on linux, and then copy the model to a Windows environment and run the simulator there. Then on Windows I ran into issue with the beta simulator.
 
